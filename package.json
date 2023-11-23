@@ -1,0 +1,23 @@
+{
+  "name": "mlscript-debug-js",
+  "displayName": "MLscript DebugJS",
+  "description": "MLscript debugger with JS for VS Code",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Debuggers"
+  ],
+  "activationEvents": [],
+  "main": "./target/scala-3.3.1/mlscript-debugger-js-fastopt/main.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.mlscript.helloworld",
+        "title": "Hello World",
+        "category": "MLscript"
+      }
+    ]
+  }
+}
