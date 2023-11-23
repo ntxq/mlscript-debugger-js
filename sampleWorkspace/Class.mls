@@ -1,0 +1,19 @@
+// Class declaration without arguments
+class C()
+C()
+
+// Class declaration
+class A(a: Int)
+A(10)
+
+// Class declaration with multiple arguments
+class B(b: Int, c: Int)
+B(10, 20)
+
+// Class member access
+class A(val a: Int)
+A(10).a
+
+// Class member access with multiple arguments
+class B(b: Int, val c: Int)
+B(10, 20).c

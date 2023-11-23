@@ -1,0 +1,33 @@
+class Node
+class Cons(val head: Int, tail: Node) extends Node
+class Nil() extends Node
+
+fun min(x, y) = if x < y then x else y
+
+fun findMin(n) =
+    if n
+        is Nil() then log("empty list")
+        is Cons(h, Nil()) then h
+        is Cons(h, t) then min(h, findMin(t))
+
+fun remove(n, x) =
+    if n
+        is Nil() then log("empty list")
+        is Cons(h, t) then
+            if h == x then t
+            else Cons(h, remove(t, x))
+
+fun sort(n) =
+    if n
+        is Nil() 
+            then n
+        is Cons(h, t) then
+            let m = findMin(n)
+            Cons(m, sort(remove(n, m)))
+
+log(findMin(Cons(3, Cons(2, Cons(1, Nil())))))
+log(findMin(Cons(2, Cons(3, Cons(4, Nil())))))
+
+log(remove(Cons(3, Cons(2, Cons(1, Nil()))), 2))
+
+log(sort(Cons(3, Cons(2, Cons(1, Nil())))))

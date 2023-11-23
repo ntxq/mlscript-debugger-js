@@ -11,6 +11,7 @@ lazy val root = project
     scalaVersion := scala3Version,
 
     Compile / npmDependencies ++= Seq(
-      "@types/vscode" -> "1.84.2"
+      "@types/vscode" -> "1.84.2",
+      "@vscode/debugadapter" -> "1.64.0",
     ),
   )

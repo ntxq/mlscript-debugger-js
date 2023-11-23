@@ -1,0 +1,76 @@
+let f(x) = x + 2
+f(3)
+
+// Nested lambda value
+x => y => x + y
+
+// Nested function call
+let f(x)(y)(z) = x + y * z
+let g(x)(y) = f(x)(y)(3)
+let h(x) = g(x)(2)
+h(1)
+
+// Closured function call
+let f(x)(y)(z) = x + y * z
+let g = f(1)
+let h = g(2)
+h(3)
+
+// Tuple with arbitrary expressions
+[
+  let f = x => x + 1
+  f(3),
+  let g = x => x + 2
+  g(3)
+]
+
+// Record with arbitrary expressions
+{
+  x: (let f = x => x + 1 in f(2))
+}
+
+// Local let binding
+let f = let g = x => x * 2 in let h = x => g(x + 1) in x => h(h(x))
+f(4)
+
+// Function without arguments
+fun f() = 2
+f()
+
+// Function with multiple arguments
+fun f(x, y) = y
+f(1, 2)
+
+// Definition without call
+let x = 2 + 3
+x
+
+// Selection from nested record
+let r = { x: { y: { z: 42 } } }
+r.x.y.z
+
+// Destructuring parameter with alias
+let f({ x: y, y: x }) = x - y
+f({ x: 2, y: 3})
+
+// Selection from any argument
+let f(x) = x.y
+f({ y: 5 })
+
+// Nested function call
+let f(x) = y => x + y
+f(2)(3)
+
+// Shadowing definition
+fun fizz(x) = x + 1
+let fizz = fizz(2)
+fizz
+
+// Let binding with closure
+fun f = let x = 1 + 2 in
+  y => x + y
+f(3)
+
+// Passing lambda as argument
+fun f({ g }) = g(2)
+f({ g: x => x * 2 })

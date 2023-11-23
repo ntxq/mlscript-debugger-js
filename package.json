@@ -12,11 +12,64 @@
   "activationEvents": [],
   "main": "./target/scala-3.3.1/mlscript-debugger-js-fastopt/main.js",
   "contributes": {
+    "languages": [
+      {
+        "id": "mlscript",
+        "extensions": [
+          ".mls"
+        ],
+        "aliases": [
+          "MLscript"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mlscript",
+        "scopeName": "source.mlscript",
+        "path": "./syntaxes/mlscript.tmLanguage.json"
+      }
+    ],
     "commands": [
       {
         "command": "extension.mlscript.helloworld",
         "title": "Hello World",
         "category": "MLscript"
+      },
+      {
+        "command": "extension.mlscript.runEditorContents",
+        "title": "Run File",
+        "category": "MLscript",
+        "enablement": "!inDebugMode",
+        "icon": "$(play)"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "mlscript",
+        "label": "MLscript Debug",
+        "languages": [
+          "mlscript"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "The program to debug."
+              }
+            }
+          }
+        }
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "mlscript"
       }
     ]
   }
