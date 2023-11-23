@@ -6,9 +6,9 @@ object Main:
   @JSExportTopLevel("activate")
   def activate(context: vscode.ExtensionContext): Unit =
     registerHelloWorld(context)
+    registerRunFile(context)
     registerDebugger(context)
 
-  /** Register a command that prints "Hello World" to the console (for testing purposes) */
   def registerHelloWorld(context: vscode.ExtensionContext): Unit =
     val helloWorldFn: Any => Any     = _ => vscode.window.showInformationMessage("Hello World!")
     val jsFn: js.Function1[Any, Any] = helloWorldFn
@@ -19,10 +19,22 @@ object Main:
     )
     context.subscriptions.push(disposable.asInstanceOf)
 
-  def registerDebugger(context: vscode.ExtensionContext): Unit =
+  def registerRunFile(context: vscode.ExtensionContext): Unit =
     val debugFn: Any => Any = _ =>
       for editor <- vscode.window.activeTextEditor
-      yield vscode.window.showInformationMessage(s"Running ${editor.document.uri}")
+      yield
+        vscode.window.showInformationMessage(s"Running ${editor.document.uri}")
+        vscode.debug.startDebugging(
+          (),
+          js.Dynamic
+            .literal(
+              "name"    -> "Run File",
+              "type"    -> "MLscript",
+              "request" -> "launch",
+              "program" -> editor.document.uri
+            )
+            .asInstanceOf[vscode.DebugConfiguration]
+        )
     val jsFn: js.Function1[Any, Any] = debugFn
 
     val disposable = vscode.commands.registerCommand(
@@ -30,3 +42,12 @@ object Main:
       jsFn
     )
     context.subscriptions.push(disposable.asInstanceOf)
+
+  def registerDebugger(context: vscode.ExtensionContext): Unit =
+    val factory: vscode.DebugAdapterDescriptorFactory = InlineDebugAdapterDescriptorFactory().asInstanceOf
+    val disposable = vscode.debug.registerDebugAdapterDescriptorFactory("MLscript", factory)
+    context.subscriptions.push(disposable.asInstanceOf)
+
+class InlineDebugAdapterDescriptorFactory extends js.Object:
+  def createDebugAdapterDescriptor(session: vscode.DebugSession): vscode.ProviderResult[vscode.DebugAdapterDescriptor] =
+    vscode.DebugAdapterInlineImplementation(MLscriptDebugSession().asInstanceOf)
