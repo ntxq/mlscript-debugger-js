@@ -10,6 +10,10 @@ lazy val root = project
     name         := "mlscript-debugger-js",
     version      := "0.1.0-SNAPSHOT",
     scalaVersion := scala3Version,
+
+    libraryDependencies += "com.lihaoyi" %%% "fastparse" % "3.0.2",
+    libraryDependencies += "co.fs2" %%% "fs2-core" % "3.9.3",
+    libraryDependencies += "co.fs2" %%% "fs2-io" % "3.9.3",
     
     webpack / version := "5.89.0",
     scalaJSLinkerConfig ~= {

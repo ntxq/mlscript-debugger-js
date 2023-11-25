@@ -1,3 +1,6 @@
+package mlscript
+package dsp
+
 import scala.scalajs.js
 import scala.scalajs.js.annotation.*
 import typings.vscode.{mod as vscode}
@@ -22,19 +25,17 @@ object Main:
   def registerRunFile(context: vscode.ExtensionContext): Unit =
     val debugFn: Any => Any = _ =>
       for editor <- vscode.window.activeTextEditor
-      yield
-        vscode.window.showInformationMessage(s"Running ${editor.document.uri}")
-        vscode.debug.startDebugging(
-          (),
-          js.Dynamic
-            .literal(
-              "name"    -> "Run File",
-              "type"    -> "mlscript",
-              "request" -> "launch",
-              "program" -> editor.document.uri
-            )
-            .asInstanceOf[vscode.DebugConfiguration]
-        )
+      yield vscode.debug.startDebugging(
+        (),
+        js.Dynamic
+          .literal(
+            "name"    -> "Run File",
+            "type"    -> "mlscript",
+            "request" -> "launch",
+            "program" -> editor.document.uri.fsPath
+          )
+          .asInstanceOf[vscode.DebugConfiguration]
+      )
     val jsFn: js.Function1[Any, Any] = debugFn
 
     val disposable = vscode.commands.registerCommand(
