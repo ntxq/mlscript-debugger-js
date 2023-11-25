@@ -45,10 +45,6 @@ object Main:
     context.subscriptions.push(disposable.asInstanceOf)
 
   def registerDebugger(context: vscode.ExtensionContext): Unit =
-    val factory: vscode.DebugAdapterDescriptorFactory = InlineDebugAdapterDescriptorFactory().asInstanceOf
+    val factory: vscode.DebugAdapterDescriptorFactory = MLscriptDebugAdapterDescriptorFactory().asInstanceOf
     val disposable = vscode.debug.registerDebugAdapterDescriptorFactory("mlscript", factory)
     context.subscriptions.push(disposable.asInstanceOf)
-
-class InlineDebugAdapterDescriptorFactory extends js.Object:
-  def createDebugAdapterDescriptor(session: vscode.DebugSession): vscode.ProviderResult[vscode.DebugAdapterDescriptor] =
-    vscode.DebugAdapterInlineImplementation(MLscriptDebugSession().asInstanceOf)
