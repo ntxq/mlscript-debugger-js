@@ -29,7 +29,7 @@ object Main:
           js.Dynamic
             .literal(
               "name"    -> "Run File",
-              "type"    -> "MLscript",
+              "type"    -> "mlscript",
               "request" -> "launch",
               "program" -> editor.document.uri
             )
@@ -45,7 +45,7 @@ object Main:
 
   def registerDebugger(context: vscode.ExtensionContext): Unit =
     val factory: vscode.DebugAdapterDescriptorFactory = InlineDebugAdapterDescriptorFactory().asInstanceOf
-    val disposable = vscode.debug.registerDebugAdapterDescriptorFactory("MLscript", factory)
+    val disposable = vscode.debug.registerDebugAdapterDescriptorFactory("mlscript", factory)
     context.subscriptions.push(disposable.asInstanceOf)
 
 class InlineDebugAdapterDescriptorFactory extends js.Object:

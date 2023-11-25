@@ -10,7 +10,7 @@
     "Debuggers"
   ],
   "activationEvents": [],
-  "main": "./target/scala-3.3.1/mlscript-debugger-js-fastopt/main.js",
+  "main": "./target/scala-3.3.1/scalajs-bundler/main/mlscript-debugger-js-fastopt-bundle.js",
   "contributes": {
     "languages": [
       {
