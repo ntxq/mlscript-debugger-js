@@ -1,9 +1,10 @@
 package mlscript
 package dsp
 
-import scala.scalajs.js
-import scala.scalajs.js.annotation.*
 import typings.vscode.{mod as vscode}
+
+import scala.scalajs.js
+import scala.scalajs.js.annotation.JSExportTopLevel
 
 object Main:
   @JSExportTopLevel("activate")
