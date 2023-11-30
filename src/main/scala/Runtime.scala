@@ -103,6 +103,14 @@ class MLscriptRuntime(reporter: MLscriptReporter):
         step(interpreter.debug(ast))
       )
 
+  def continue(requestThreadId: Int): Unit =
+    if requestThreadId == threadId
+    then
+      for label <- curLabel
+      do
+        reporter.output(s"Continue from $label")
+        step(interpreter.resume(label))
+
   def step(cont: Cont[Value]): Unit =
     cont match
       case Done(value) =>

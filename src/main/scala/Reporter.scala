@@ -1,7 +1,14 @@
 package mlscript
 package dsp
 
-import typings.vscodeDebugadapter.mod.{ExitedEvent, InitializedEvent, OutputEvent, StoppedEvent, TerminatedEvent, ThreadEvent}
+import typings.vscodeDebugadapter.mod.{
+  ExitedEvent,
+  InitializedEvent,
+  OutputEvent,
+  StoppedEvent,
+  TerminatedEvent,
+  ThreadEvent
+}
 import typings.vscodeDebugprotocol.mod.DebugProtocol.Event
 
 import scala.scalajs.js
@@ -25,6 +32,7 @@ class MLscriptReporter(sendEvent: Event => Unit):
   def stop(breakpointId: Double, threadId: Int): Unit =
     val event = StoppedEvent("breakpoint", threadId.toDouble)
     event.body_StoppedEvent.setHitBreakpointIds(js.Array(breakpointId))
+    event.body_StoppedEvent.setAllThreadsStopped(true)
     sendEvent(event)
 
   def exit(exitCode: Int): Unit =

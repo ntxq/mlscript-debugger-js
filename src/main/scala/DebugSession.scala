@@ -3,11 +3,33 @@ package dsp
 
 import typings.vscodeDebugadapter.mod.DebugSession
 import typings.vscodeDebugprotocol.anon.{BreakpointsArray, Threads}
-import typings.vscodeDebugprotocol.mod.DebugProtocol.{Breakpoint, Capabilities, ConfigurationDoneArguments, ConfigurationDoneResponse, InitializeRequestArguments, InitializeResponse, LaunchRequestArguments, LaunchResponse, Request, ScopesArguments, ScopesResponse, SetBreakpointsArguments, SetBreakpointsResponse, StackTraceArguments, StackTraceResponse, Thread, ThreadsResponse, VariablesArguments, VariablesResponse}
+import typings.vscodeDebugprotocol.mod.DebugProtocol.{
+  Breakpoint,
+  Capabilities,
+  ConfigurationDoneArguments,
+  ConfigurationDoneResponse,
+  InitializeRequestArguments,
+  InitializeResponse,
+  LaunchRequestArguments,
+  LaunchResponse,
+  Request,
+  ScopesArguments,
+  ScopesResponse,
+  SetBreakpointsArguments,
+  SetBreakpointsResponse,
+  StackTraceArguments,
+  StackTraceResponse,
+  Thread,
+  ThreadsResponse,
+  VariablesArguments,
+  VariablesResponse
+}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js
 import scala.util.{Failure, Success}
+import typings.vscodeDebugprotocol.mod.DebugProtocol.ContinueArguments
+import typings.vscodeDebugprotocol.mod.DebugProtocol.ContinueResponse
 
 class MLscriptDebugSession extends DebugSession():
   val reporter                 = MLscriptReporter(sendEvent)
@@ -67,3 +89,7 @@ class MLscriptDebugSession extends DebugSession():
   override def variablesRequest(response: VariablesResponse, args: VariablesArguments, request: Request): Unit =
     response.setBody(runtime.getVariables)
     sendResponse(response)
+
+  override def continueRequest(response: ContinueResponse, args: ContinueArguments, request: Request): Unit =
+    sendResponse(response)
+    runtime.continue(args.threadId.toInt)
