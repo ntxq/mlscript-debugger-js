@@ -19,8 +19,7 @@ fun remove(n, x) =
 
 fun sort(n) =
     if n
-        is Nil() 
-            then n
+        is Nil() then n
         is Cons(h, t) then
             let m = findMin(n)
             Cons(m, sort(remove(n, m)))
