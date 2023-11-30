@@ -1,11 +1,12 @@
 package mlscript
 
+import mlscript.utils._
+
+import scala.collection.mutable.{Buffer, Map => MutMap, Set => MutSet, SortedMap => SortedMutMap}
 import scala.util.chaining._
-import scala.collection.mutable.{Map => MutMap, SortedMap => SortedMutMap, Set => MutSet, Buffer}
 
 import math.Ordered.orderingToOrdered
-
-import mlscript.utils._, shorthands._
+import shorthands._
 
 
 // Auxiliary definitions for types
@@ -92,7 +93,7 @@ trait TypeLikeImpl extends Located { self: TypeLike =>
             .reduce(_ + opStr + _), outerPrec > prec)
       }
     // 
-    case Bounds(Bot, Top) => s"?"
+    case Bounds(Bot, Top) => "?"
     case Bounds(lb, ub) if lb === ub => lb.showIn(ctx, outerPrec)
     case Bounds(Bot, ub) => s"out ${ub.showIn(ctx, 0)}"
     case Bounds(lb, Top) => s"in ${lb.showIn(ctx, 0)}"
@@ -551,8 +552,8 @@ trait TermImpl extends StatementImpl { self: Term =>
       case New(h, b) => "object instantiation"
       case If(_, _) => "if-else block"
       case TyApp(_, _) => "type application"
-      case Where(_, _) => s"constraint clause"
-      case Forall(_, _) => s"forall clause"
+      case Where(_, _) => "constraint clause"
+      case Forall(_, _) => "forall clause"
       case Inst(bod) => "explicit instantiation"
       case Super() => "super"
       case Eqn(lhs, rhs) => "assign for ctor"

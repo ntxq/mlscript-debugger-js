@@ -1,11 +1,13 @@
 package mlscript
 
-import scala.util.chaining._
-import scala.annotation.tailrec
-import sourcecode.{Name, Line}
-
-import utils._, shorthands._
 import mlscript.Message._
+import sourcecode.{Line, Name}
+
+import scala.annotation.tailrec
+import scala.util.chaining._
+
+import utils._
+import shorthands._
 import BracketKind._
 
 object NewParser {

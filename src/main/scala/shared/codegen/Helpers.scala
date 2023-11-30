@@ -1,6 +1,8 @@
 package mlscript.codegen
 
-import mlscript._, mlscript.utils.shorthands._
+import mlscript._
+import mlscript.utils.shorthands._
+
 import scala.collection.immutable.{Map, Set}
 
 object Helpers {
@@ -24,7 +26,7 @@ object Helpers {
       s"Rcd($entries)"
     case Sel(receiver, fieldName)    => s"Sel(${inspect(receiver)}, $fieldName)"
     case Let(isRec, name, rhs, body) => s"Let($isRec, $name, ${inspect(rhs)}, ${inspect(body)})"
-    case Blk(stmts)                  => s"Blk(...)"
+    case Blk(stmts)                  => "Blk(...)"
     case Bra(rcd, trm)               => s"Bra(rcd = $rcd, ${inspect(trm)})"
     case Asc(trm, ty)                => s"Asc(${inspect(trm)}, $ty)"
     case Bind(lhs, rhs)              => s"Bind(${inspect(lhs)}, ${inspect(rhs)})"

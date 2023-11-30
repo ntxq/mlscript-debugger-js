@@ -8,7 +8,7 @@ sealed abstract class Values:
       case DecVal(value)  => s"<dec: $value>"
       case StrVal(value)  => s"<str: $value>"
       case BoolVal(value) => s"<bool: $value>"
-      case UnitVal()      => s"<unit>"
+      case UnitVal()      => "<unit>"
       case Tuple(fields) =>
         s"<tuple: ${fields
             .map { case (name, fld) => s"${name.map(_.name + " = ").getOrElse("")}${fld.value}" }

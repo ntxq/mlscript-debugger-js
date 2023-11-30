@@ -1,12 +1,7 @@
 package mlscript
 package dsp
 
-import typings.vscodeDebugadapter.mod.ExitedEvent
-import typings.vscodeDebugadapter.mod.InitializedEvent
-import typings.vscodeDebugadapter.mod.OutputEvent
-import typings.vscodeDebugadapter.mod.StoppedEvent
-import typings.vscodeDebugadapter.mod.TerminatedEvent
-import typings.vscodeDebugadapter.mod.ThreadEvent
+import typings.vscodeDebugadapter.mod.{ExitedEvent, InitializedEvent, OutputEvent, StoppedEvent, TerminatedEvent, ThreadEvent}
 import typings.vscodeDebugprotocol.mod.DebugProtocol.Event
 
 import scala.scalajs.js

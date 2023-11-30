@@ -1,7 +1,10 @@
 package mlscript
 
+import mlscript.utils._
+
 import scala.language.implicitConversions
-import mlscript.utils._, shorthands._
+
+import shorthands._
 
 final case class Message(bits: Ls[Message.Bit]) {
   def show(newDefs: Bool): Str = {

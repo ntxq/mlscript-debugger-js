@@ -1,27 +1,13 @@
 package mlscript
 package dsp
 
-import mlscript.interpreter.Cont
-import mlscript.interpreter.Done
-import mlscript.interpreter.Environment
-import mlscript.interpreter.Interpreter
-import mlscript.interpreter.Paused
-import mlscript.interpreter.Value
+import mlscript.interpreter.{Cont, Done, Environment, Interpreter, Paused, Value}
 import typings.node.bufferMod.global.BufferEncoding
 import typings.node.fsPromisesMod as fs
-import typings.vscodeDebugprotocol.anon.BreakpointsArray
-import typings.vscodeDebugprotocol.anon.Scopes
-import typings.vscodeDebugprotocol.anon.StackFrames
-import typings.vscodeDebugprotocol.anon.Variables
-import typings.vscodeDebugprotocol.mod.DebugProtocol.Breakpoint
-import typings.vscodeDebugprotocol.mod.DebugProtocol.Scope
-import typings.vscodeDebugprotocol.mod.DebugProtocol.Source
-import typings.vscodeDebugprotocol.mod.DebugProtocol.SourceBreakpoint
-import typings.vscodeDebugprotocol.mod.DebugProtocol.StackFrame
-import typings.vscodeDebugprotocol.mod.DebugProtocol.Variable
+import typings.vscodeDebugprotocol.anon.{BreakpointsArray, Scopes, StackFrames, Variables}
+import typings.vscodeDebugprotocol.mod.DebugProtocol.{Breakpoint, Scope, Source, SourceBreakpoint, StackFrame, Variable}
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
 

@@ -1,6 +1,8 @@
 package mlscript
 
-import mlscript.utils._, shorthands._
+import mlscript.utils._
+
+import shorthands._
 
 
 /** Type of general Tokens */
@@ -19,7 +21,7 @@ sealed abstract class Token {
     case SELECT(name) => "selector"
     case OPEN_BRACKET(k) => s"opening ${k.name}"
     case CLOSE_BRACKET(k) => s"closing ${k.name}"
-    case BRACKETS(BracketKind.Indent, contents) => s"indented block"
+    case BRACKETS(BracketKind.Indent, contents) => "indented block"
     case BRACKETS(k, contents) => s"${k.name} section"
     case COMMENT(text) => "comment"
   }

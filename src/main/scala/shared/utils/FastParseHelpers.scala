@@ -1,6 +1,8 @@
 package mlscript
 
-import mlscript.utils._, shorthands._
+import mlscript.utils._
+
+import shorthands._
 
 class FastParseHelpers(val blockStr: Str, val lines: collection.IndexedSeq[Str]) {
   def this(lines: IndexedSeq[Str]) = this(lines.mkString("\n"), lines)

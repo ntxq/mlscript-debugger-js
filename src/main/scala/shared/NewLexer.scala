@@ -1,11 +1,11 @@
 package mlscript
 
 import scala.annotation.tailrec
-import utils._, shorthands._
 
+import utils._
+import shorthands._
 import Message.MessageContext
 import Diagnostic.{Lexing, Parsing}
-
 import NewLexer._
 
 class NewLexer(origin: Origin, raise: Diagnostic => Unit, dbg: Bool) {

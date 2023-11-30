@@ -1,8 +1,10 @@
 package mlscript
 
-import scala.util.chaining._
-import mlscript.utils._, shorthands._
+import mlscript.utils._
 
+import scala.util.chaining._
+
+import shorthands._
 import Diagnostic._
 
 sealed abstract class Diagnostic(val theMsg: String) extends Exception(theMsg) {

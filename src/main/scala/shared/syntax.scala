@@ -1,6 +1,8 @@
 package mlscript
 
-import mlscript.utils._, shorthands._
+import mlscript.utils._
+
+import shorthands._
 
 
 // Terms
@@ -110,7 +112,7 @@ object FldFlags { val empty: FldFlags = FldFlags(false, false, false) }
 sealed abstract class CaseBranches extends CaseBranchesImpl
 final case class Case(pat: SimpleTerm, body: Term, rest: CaseBranches) extends CaseBranches
 final case class Wildcard(body: Term) extends CaseBranches
-final case object NoCases extends CaseBranches
+case object NoCases extends CaseBranches
 
 final case class IntLit(value: BigInt)            extends Lit
 final case class DecLit(value: BigDecimal)        extends Lit

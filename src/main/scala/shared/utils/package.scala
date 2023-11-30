@@ -1,7 +1,8 @@
 package mlscript
 
-import utils.shorthands._
 import scala.collection.mutable
+
+import utils.shorthands._
 
 package object utils {
 
