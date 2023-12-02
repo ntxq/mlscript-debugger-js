@@ -10,6 +10,7 @@ import typings.vscodeDebugprotocol.mod.DebugProtocol.{Breakpoint, Scope, Source,
 import scala.concurrent.{ExecutionContext, Future}
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
+import typings.std.stdStrings.start
 
 class MLscriptRuntime(reporter: MLscriptReporter):
   private val interpreter: Interpreter             = Interpreter(reporter.output(_, "stdout"))
@@ -19,9 +20,9 @@ class MLscriptRuntime(reporter: MLscriptReporter):
   private var curLabel: Option[String]    = None
   private var curEnv: Option[Environment] = None
 
-  val threadId: Int     = 1
-  val stackFrameId: Int = 2
-  val scopeId: Int      = 3
+  val threadId: Int      = 1
+  val frameIdOffset: Int = 1024
+  val scopeIdOffset: Int = 1024
 
   def setBreakpoints(srcBreakpoints: Seq[SourceBreakpoint], source: Source): BreakpointsArray =
     bpSource = Some(source)
@@ -53,51 +54,59 @@ class MLscriptRuntime(reporter: MLscriptReporter):
       .reverse
 
   def getStackFrames: StackFrames =
-    val singleStackFrame = StackFrame(0, stackFrameId, 0, "MLscript StackFrame")
-
-    for source <- bpSource
-    do singleStackFrame.setSource(source)
+    val stackframes =
+      for
+        env                             <- curEnv.toList
+        ((stackName, stackValues), idx) <- env.toStackFrames.zipWithIndex
+      yield StackFrame(0, idx + frameIdOffset, 0, stackName)
 
     for
-      label <- curLabel
-      bp    <- breakpoints.get(label)
-      line  <- bp.line.toOption
-    do singleStackFrame.setLine(line)
+      source     <- bpSource
+      stackframe <- stackframes
+    do stackframe.setSource(source)
 
-    StackFrames(js.Array(singleStackFrame))
+    for
+      label      <- curLabel
+      bp         <- breakpoints.get(label)
+      line       <- bp.line.toOption
+      stackFrame <- stackframes.headOption
+    do stackFrame.setLine(line)
 
-  def getScopes: Scopes =
-    val singleScope = Scope(false, "MLscript Scope", scopeId)
+    for stackFrame <- stackframes
+    do reporter.output(s"Stackframe: ${js.JSON.stringify(stackFrame)}}")
+    StackFrames(stackframes.toJSArray)
+
+  def getScopes(frameId: Int): Scopes =
+    val singleScope = Scope(false, "MLscript Scope", frameId + scopeIdOffset)
     Scopes(js.Array(singleScope))
 
-  def getVariables: Variables =
-    val variables =
-      (for env <- curEnv
-      yield env.toMap.map((name, value) => Variable(name, value.toTerm.toString, 0)).toArray)
-        .getOrElse(Array.empty[Variable])
-    Variables(variables.toJSArray)
+  def getVariables(id: Int): Variables =
+    id match
+      case scopeId if scopeIdOffset <= scopeId =>
+        val values =
+          for
+            env                      <- curEnv
+            (stackName, scopeValues) <- env.toStackFrames.lift(scopeId - scopeIdOffset - frameIdOffset)
+          yield scopeValues.map((name, value) => Variable(name, value.toTerm.toString, 0)).toArray
+        Variables(values.getOrElse(Array.empty[Variable]).toJSArray)
+
+      case _ =>
+        Variables(js.Array())
 
   def launch(program: String)(using ExecutionContext): Future[Unit] =
     fs.readFile(program, BufferEncoding.utf8)
       .toFuture
       .map(text =>
-        reporter.output(s"Program:\n$text")
-        reporter
-          .output(s"Breakpoints:\n${breakpoints.map { case (label, bp) => s"$label: ${bp.line.get}" }.mkString("\n")}")
-
         val bpText = insertBreakpoints(text)
-        reporter.output(s"Program with breakpoints:\n${bpText.mkString("\n")}")
 
         val fph    = FastParseHelpers(bpText)
         val origin = Origin(program, 0, fph)
         val lexer  = NewLexer(origin, _ => (), false)
         val tokens = lexer.bracketedTokens
-        reporter.output("Tokens:\n" + NewLexer.printTokens(tokens))
 
         val parser = new NewParser(origin, tokens, true, _ => (), false, None):
           override def doPrintDbg(msg: => String): Unit = ()
         val ast = parser.parseAll(parser.typingUnit)
-        reporter.output("AST:\n" + codegen.Helpers.inspect(ast))
 
         reporter.thread("started", threadId)
         step(interpreter.debug(ast))

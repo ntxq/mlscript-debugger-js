@@ -40,7 +40,7 @@ class Interpreter(output: String => Unit):
           yield retVal
 
         case (fun @ NuFunDef(None, Var(name), _, _, Left(body))) :: rest =>
-          loop(acc, env.extendRec(name, body), rest)
+          loop(acc, env.extendFunDef(name, body), rest)
 
         case (fun @ NuFunDef(Some(isRec), Var(name), _, _, Left(body))) :: rest =>
           val recEnv =
@@ -127,6 +127,21 @@ class Interpreter(output: String => Unit):
       case _ =>
         None
 
+  def resolveName(name: String)(using env: Environment, tracer: Tracer): Cont[Value] =
+    env.lookup(name) match
+      case value: Value =>
+        Cont.pure(value)
+
+      case Thunk(term, thunkEnv) =>
+        for value <- evaluate(term)(using thunkEnv)
+        yield value
+
+      case FunDef(funName, term, funEnv) =>
+        for lamVal <- evaluate(term)(using funEnv)
+        yield lamVal match
+          case LamVal(_, lhs, rhs, env) => LamVal(funName, lhs, rhs, env)
+          case _                        => throw InterpreterError(s"FunDef: $lamVal")
+
   def evaluate(term: Term)(using env: Environment, tracer: Tracer): Cont[Value] =
     term match
       case IntLit(value) =>
@@ -139,14 +154,10 @@ class Interpreter(output: String => Unit):
         Cont.pure(UnitVal())
 
       case Var(name) =>
-        env.lookup(name) match
-          case value: Value => Cont.pure(value)
-          case Thunk(term, thunkEnv) =>
-            for value <- evaluate(term)(using thunkEnv)
-            yield value
+        resolveName(name)
 
       case Lam(lhs, rhs) =>
-        Cont.pure(LamVal(lhs, rhs, env))
+        Cont.pure(LamVal("Anonymous function", lhs, rhs, env))
 
       case App(Var("pause"), Tup(List((None, Fld(_, StrLit(label)))))) =>
         Paused(label, env, () => Done(UnitVal()))
@@ -241,8 +252,8 @@ class Interpreter(output: String => Unit):
           argsVals <- args.traverseArgs(argsVal => App(lhsVal.toTerm, argsVal), evaluate)
 
           retVal <- lhsVal match
-            case LamVal(Tup(params), body, lamEnv) =>
-              val argEnv = params.zip(argsVals.fields).foldLeft(lamEnv) {
+            case LamVal(funName, Tup(params), body, lamEnv) =>
+              val argEnv = params.zip(argsVals.fields).foldLeft(lamEnv.pushStackFrame(funName, env)) {
                 case (env, ((_, Fld(_, Var(name))), (_, Field(_, value)))) =>
                   env.extend(name, value)
 
@@ -301,10 +312,10 @@ class Interpreter(output: String => Unit):
               case (Some(Var(name)), _) => name == fieldName
               case (None, _)            => false
             } match
-              case None                     => 
+              case None =>
                 recordVal match
                   case Class(_, Tuple(fields), _) => throw InterpreterError(s"Sel-Field: ${fields}")
-                  case _ => throw InterpreterError(s"Sel-Field: $recordVal.$fieldName")
+                  case _                          => throw InterpreterError(s"Sel-Field: $recordVal.$fieldName")
               case Some(_, Field(_, value)) => value
 
           case _ =>

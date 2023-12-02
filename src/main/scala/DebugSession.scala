@@ -8,6 +8,8 @@ import typings.vscodeDebugprotocol.mod.DebugProtocol.{
   Capabilities,
   ConfigurationDoneArguments,
   ConfigurationDoneResponse,
+  ContinueArguments,
+  ContinueResponse,
   InitializeRequestArguments,
   InitializeResponse,
   LaunchRequestArguments,
@@ -28,8 +30,6 @@ import typings.vscodeDebugprotocol.mod.DebugProtocol.{
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js
 import scala.util.{Failure, Success}
-import typings.vscodeDebugprotocol.mod.DebugProtocol.ContinueArguments
-import typings.vscodeDebugprotocol.mod.DebugProtocol.ContinueResponse
 
 class MLscriptDebugSession extends DebugSession():
   val reporter                 = MLscriptReporter(sendEvent)
@@ -83,11 +83,11 @@ class MLscriptDebugSession extends DebugSession():
     sendResponse(response)
 
   override def scopesRequest(response: ScopesResponse, args: ScopesArguments, request: Request): Unit =
-    response.setBody(runtime.getScopes)
+    response.setBody(runtime.getScopes(args.frameId.toInt))
     sendResponse(response)
 
   override def variablesRequest(response: VariablesResponse, args: VariablesArguments, request: Request): Unit =
-    response.setBody(runtime.getVariables)
+    response.setBody(runtime.getVariables(args.variablesReference.toInt))
     sendResponse(response)
 
   override def continueRequest(response: ContinueResponse, args: ContinueArguments, request: Request): Unit =
