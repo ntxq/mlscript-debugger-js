@@ -253,7 +253,7 @@ class Interpreter(output: String => Unit):
 
           retVal <- lhsVal match
             case LamVal(funName, Tup(params), body, lamEnv) =>
-              val argEnv = params.zip(argsVals.fields).foldLeft(lamEnv.pushStackFrame(funName, env)) {
+              val argEnv = params.zip(argsVals.fields).foldLeft(lamEnv.pushStackFrame(funName, env, term)) {
                 case (env, ((_, Fld(_, Var(name))), (_, Field(_, value)))) =>
                   env.extend(name, value)
 

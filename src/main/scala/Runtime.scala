@@ -14,6 +14,7 @@ import typings.std.stdStrings.start
 
 class MLscriptRuntime(reporter: MLscriptReporter):
   private val interpreter: Interpreter             = Interpreter(reporter.output(_, "stdout"))
+  private var fph: FastParseHelpers                = FastParseHelpers(IndexedSeq.empty)
   private var breakpoints: Map[String, Breakpoint] = Map.empty
   private var bpSource: Option[Source]             = None
 
@@ -56,9 +57,12 @@ class MLscriptRuntime(reporter: MLscriptReporter):
   def getStackFrames: StackFrames =
     val stackframes =
       for
-        env                             <- curEnv.toList
-        ((stackName, stackValues), idx) <- env.toStackFrames.zipWithIndex
-      yield StackFrame(0, idx + frameIdOffset, 0, stackName)
+        env                                  <- curEnv.toList
+        ((stackName, stackValues, loc), idx) <- env.toStackFrames.zipWithIndex
+      yield
+        val (line, _, col) = fph.getLineColAt(loc.map(_.spanStart).getOrElse(0))
+        val adjustedLine   = line - breakpoints.values.count(_.line.toOption.exists(_ < line))
+        StackFrame(col, idx + frameIdOffset, adjustedLine, stackName)
 
     for
       source     <- bpSource
@@ -70,7 +74,14 @@ class MLscriptRuntime(reporter: MLscriptReporter):
       bp         <- breakpoints.get(label)
       line       <- bp.line.toOption
       stackFrame <- stackframes.headOption
-    do stackFrame.setLine(line)
+    do
+      stackFrame.setLine(line)
+      stackFrame.setColumn(0)
+
+    for globalFrame <- stackframes.lastOption
+    do
+      globalFrame.setLine(0)
+      globalFrame.setColumn(0)
 
     for stackFrame <- stackframes
     do reporter.output(s"Stackframe: ${js.JSON.stringify(stackFrame)}}")
@@ -85,8 +96,8 @@ class MLscriptRuntime(reporter: MLscriptReporter):
       case scopeId if scopeIdOffset <= scopeId =>
         val values =
           for
-            env                      <- curEnv
-            (stackName, scopeValues) <- env.toStackFrames.lift(scopeId - scopeIdOffset - frameIdOffset)
+            env                         <- curEnv
+            (stackName, scopeValues, _) <- env.toStackFrames.lift(scopeId - scopeIdOffset - frameIdOffset)
           yield scopeValues.map((name, value) => Variable(name, value.toTerm.toString, 0)).toArray
         Variables(values.getOrElse(Array.empty[Variable]).toJSArray)
 
@@ -99,7 +110,7 @@ class MLscriptRuntime(reporter: MLscriptReporter):
       .map(text =>
         val bpText = insertBreakpoints(text)
 
-        val fph    = FastParseHelpers(bpText)
+        fph = FastParseHelpers(bpText)
         val origin = Origin(program, 0, fph)
         val lexer  = NewLexer(origin, _ => (), false)
         val tokens = lexer.bracketedTokens
