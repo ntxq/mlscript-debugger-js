@@ -1,16 +1,16 @@
 package mlscript
 package dsp
 
-import mlscript.interpreter.{Cont, Done, Environment, Interpreter, Paused, Value}
+import mlscript.interpreter.{Class, Cont, Done, Environment, Field, Interpreter, Paused, Record, Tuple, Value, Values}
 import typings.node.bufferMod.global.BufferEncoding
 import typings.node.fsPromisesMod as fs
 import typings.vscodeDebugprotocol.anon.{BreakpointsArray, Scopes, StackFrames, Variables}
 import typings.vscodeDebugprotocol.mod.DebugProtocol.{Breakpoint, Scope, Source, SourceBreakpoint, StackFrame, Variable}
 
+import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
-import typings.std.stdStrings.start
 
 class MLscriptRuntime(reporter: MLscriptReporter):
   private val interpreter: Interpreter             = Interpreter(reporter.output(_, "stdout"))
@@ -18,12 +18,14 @@ class MLscriptRuntime(reporter: MLscriptReporter):
   private var breakpoints: Map[String, Breakpoint] = Map.empty
   private var bpSource: Option[Source]             = None
 
-  private var curLabel: Option[String]    = None
-  private var curEnv: Option[Environment] = None
+  private var curLabel: Option[String]                  = None
+  private var curEnv: Option[Environment]               = None
+  private val curVariables: mutable.Map[Int, Variables] = mutable.Map.empty
 
   val threadId: Int      = 1
   val frameIdOffset: Int = 1024
-  val scopeIdOffset: Int = 1024
+  val scopeIdOffset: Int = 2048
+  val varIdOffset: Int   = 4096
 
   def setBreakpoints(srcBreakpoints: Seq[SourceBreakpoint], source: Source): BreakpointsArray =
     bpSource = Some(source)
@@ -88,21 +90,60 @@ class MLscriptRuntime(reporter: MLscriptReporter):
     StackFrames(stackframes.toJSArray)
 
   def getScopes(frameId: Int): Scopes =
-    val singleScope = Scope(false, "MLscript Scope", frameId + scopeIdOffset)
+    val scopeId     = frameId - frameIdOffset + scopeIdOffset
+    val singleScope = Scope(false, "MLscript Scope", scopeId)
+
+    curVariables.clear()
+    val scopeVals =
+      for
+        env                         <- curEnv.toArray
+        (stackName, scopeValues, _) <- env.toStackFrames.lift(scopeId - scopeIdOffset).toArray
+        (name, value)               <- scopeValues
+      yield insertVariable(name, value)
+    curVariables += scopeId -> Variables(scopeVals.toJSArray)
+
     Scopes(js.Array(singleScope))
 
-  def getVariables(id: Int): Variables =
-    id match
-      case scopeId if scopeIdOffset <= scopeId =>
-        val values =
-          for
-            env                         <- curEnv
-            (stackName, scopeValues, _) <- env.toStackFrames.lift(scopeId - scopeIdOffset - frameIdOffset)
-          yield scopeValues.map((name, value) => Variable(name, value.toTerm.toString, 0)).toArray
-        Variables(values.getOrElse(Array.empty[Variable]).toJSArray)
+  def insertVariable(name: String, value: Values): Variable =
+    value match
+      case Tuple(fields) if fields.size > 0 =>
+        val tupId = curVariables.size + varIdOffset
+
+        curVariables += tupId -> Variables(js.Array())
+        val tupVars =
+          for ((_, Field(_, fldVal)), idx) <- fields.zipWithIndex
+          yield insertVariable(s"$idx", fldVal)
+        curVariables += tupId -> Variables(tupVars.toJSArray)
+
+        Variable(name, Tuple(fields).toTerm.toString, tupId)
+
+      case Record(fields) if fields.size > 0 =>
+        val rcdId = curVariables.size + varIdOffset
+
+        curVariables += rcdId -> Variables(js.Array())
+        val rcdVars =
+          for ((Var(fldName), Field(_, fldVal)) <- fields)
+            yield insertVariable(fldName, fldVal)
+        curVariables += rcdId -> Variables(rcdVars.toJSArray)
+
+        Variable(name, Record(fields).toTerm.toString, rcdId)
+
+      case classVal @ Class(typeName, Tuple(fields), _) if fields.size > 0 =>
+        val clsId = curVariables.size + varIdOffset
+
+        curVariables += clsId -> Variables(js.Array())
+        val clsVars =
+          for case ((Some(Var(fldName)), Field(_, fldVal))) <- fields
+          yield insertVariable(fldName, fldVal)
+        curVariables += clsId -> Variables(clsVars.toJSArray)
+
+        Variable(name, classVal.toTerm.toString, clsId)
 
       case _ =>
-        Variables(js.Array())
+        Variable(name, value.toTerm.toString, 0)
+
+  def getVariables(id: Int): Variables =
+    curVariables.getOrElse(id, Variables(js.Array()))
 
   def launch(program: String)(using ExecutionContext): Future[Unit] =
     fs.readFile(program, BufferEncoding.utf8)
