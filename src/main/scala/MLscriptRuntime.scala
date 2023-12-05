@@ -1,7 +1,22 @@
 package mlscript
 package dsp
 
-import mlscript.interpreter.{Class, Cont, Done, Environment, Field, Interpreter, Paused, Record, Tuple, Value, Values}
+import mlscript.interpreter.{
+  Class,
+  Cont,
+  Done,
+  Environment,
+  Field,
+  Interpreter,
+  InterpreterError,
+  Paused,
+  Record,
+  Tracer,
+  Tuple,
+  Value,
+  Values
+}
+import mlscript.utils.shorthands.Str
 import typings.node.bufferMod.global.BufferEncoding
 import typings.node.fsPromisesMod as fs
 import typings.vscodeDebugprotocol.anon.{BreakpointsArray, Scopes, StackFrames, Variables}
@@ -144,6 +159,20 @@ class MLscriptRuntime(reporter: MLscriptReporter):
 
   def getVariables(id: Int): Variables =
     curVariables.getOrElse(id, Variables(js.Array()))
+
+  def setVariable(containerId: Int, value: String): Value =
+    val fph    = FastParseHelpers(IndexedSeq(value))
+    val origin = Origin("setVariable", 0, fph)
+    val lexer  = NewLexer(origin, _ => (), false)
+    val tokens = lexer.bracketedTokens
+
+    val parser = new NewParser(origin, tokens, true, _ => (), false, None):
+      override protected def doPrintDbg(msg: => Str): Unit = ()
+    val ast = parser.parseAll(parser.typingUnit)
+
+    interpreter.resolveStmts(ast.entities)(using curEnv.get, Tracer(_.toString)) match
+      case Done(retVal)             => retVal
+      case Paused(label, env, rest) => throw InterpreterError(s"Unexpected pause at $label")
 
   def launch(program: String)(using ExecutionContext): Future[Unit] =
     fs.readFile(program, BufferEncoding.utf8)

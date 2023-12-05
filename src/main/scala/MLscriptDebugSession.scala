@@ -2,7 +2,7 @@ package mlscript
 package dsp
 
 import typings.vscodeDebugadapter.mod.DebugSession
-import typings.vscodeDebugprotocol.anon.{BreakpointsArray, Threads}
+import typings.vscodeDebugprotocol.anon.{BreakpointsArray, IndexedVariables, Threads}
 import typings.vscodeDebugprotocol.mod.DebugProtocol.{
   Breakpoint,
   Capabilities,
@@ -19,6 +19,8 @@ import typings.vscodeDebugprotocol.mod.DebugProtocol.{
   ScopesResponse,
   SetBreakpointsArguments,
   SetBreakpointsResponse,
+  SetVariableArguments,
+  SetVariableResponse,
   StackTraceArguments,
   StackTraceResponse,
   Thread,
@@ -37,7 +39,8 @@ class MLscriptDebugSession extends DebugSession():
 
   override def initializeRequest(response: InitializeResponse, args: InitializeRequestArguments): Unit =
     val capabilities = Capabilities()
-    capabilities.setSupportsSingleThreadExecutionRequests(true)
+    capabilities.setSupportsSetVariable(true)
+    capabilities.setSupportsSetExpression(true)
     response.setBody(capabilities)
     sendResponse(response)
     reporter.initialized()
@@ -93,3 +96,9 @@ class MLscriptDebugSession extends DebugSession():
   override def continueRequest(response: ContinueResponse, args: ContinueArguments, request: Request): Unit =
     sendResponse(response)
     runtime.continue(args.threadId.toInt)
+
+  override def setVariableRequest(response: SetVariableResponse, args: SetVariableArguments, request: Request): Unit =
+    val retVal = runtime.setVariable(args.variablesReference.toInt, args.value)
+    reporter.output(s"Set variable: ${retVal.toTerm.toString}")
+    response.setBody(IndexedVariables(retVal.toTerm.toString))
+    sendResponse(response)
