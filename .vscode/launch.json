@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "${workspaceFolder}/sampleWorkspace"
+      ],
+      "outFiles": ["${workspaceFolder}/target/scala-3.3.1/scalajs-bundler/main/mlscript-debugger-js-opt-bundle.js"],
+      // "preLaunchTask": "build"
+    }
+  ]
+}
